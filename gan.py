@@ -460,11 +460,11 @@ class CGAN(object):
                     label = 'train_{:02d}_{:04d}'.format(epoch, idx)
                     self.visualize_results(epoch, label,
                                            self.y_for_visualization_samples)
-
+            print("----------- should be here -------------")
             # After an epoch, start_batch_id is set to zero
             # non-zero value is only for the first epoch after loading pre-trained model
             start_batch_id = 0
-
+            
             # save model
             self.save(self.checkpoint_dir, counter)
 
@@ -496,6 +496,7 @@ class CGAN(object):
 
         samples = samples[:self.sample_num]
 
+        print("------- before save images functions ------")
         self.save_images(samples, epoch, label)
 
     @property
@@ -562,7 +563,7 @@ class CGAN(object):
 
     def save_images(self, samples, epoch, label):
         fig = self.plot(samples)
-
+        print("------- In the save images functions ------")
         plot_dir = os.path.join(self.result_dir, self.model_dir)
         if not os.path.exists(plot_dir):
             os.mkdir(plot_dir)
