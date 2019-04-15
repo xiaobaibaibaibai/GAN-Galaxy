@@ -62,14 +62,15 @@ if train:
                                 "tmp - models",
                                 "models/gan/checkpoints")
 else:
-    num_epochs = 1
+    
+    num_epochs = 10
     # use a dir inside the repo
     checkpoint_dir = "models/gan/checkpoints"
 
     batch_size = 64
     z_dim = 100
     dataset_name = "galaxy"
-    result_dir = "models/gan/results"
+    result_dir = "models/gan/"
     log_dir = "models/gan/log"
 
     model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
