@@ -1,0 +1,17 @@
+galaxy_images_training
+
+# Dir #
+###################
+.venv/
+.vscode/
+__pycache__/
+
+settings.json
+
+test.py
+
+*.zip
+
+*.png
+
+test*.py
