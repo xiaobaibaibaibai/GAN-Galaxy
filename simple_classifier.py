@@ -177,8 +177,12 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 #     plt.ylabel("Loss\n(avg. binary cross-entropy)")
     plt.ylabel("Loss")
 
-    
     plt.ylim(.45, .65)
+
+    plt.savefig("Classifier_Baseline0.png")
+
+
+
 
 class_probs = model.predict_proba(X[testing_set_indices]).flatten()
 class_probs
@@ -198,6 +202,11 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
         loc="upper left",
         bbox_to_anchor=(1, 1),
     )
+
+    plt.savefig("Classifier_Baseline1.png")
+
+
+
 
 
 from sklearn import metrics
@@ -220,6 +229,9 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
+    plt.savefig("ROC_Curve.png")
+
+
 from sklearn import metrics
 from sklearn.metrics import average_precision_score
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
@@ -239,7 +251,7 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
-
+    plt.savefig("PR_Curve.png")
 
 
 
