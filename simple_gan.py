@@ -43,6 +43,7 @@ y = df.loc[HSC_ids].values
 
 
 y_for_visualization_samples = np.array([.14, 8.51])
+
 standardizer = misc.Standardizer()
 standardizer.train(y)
 print("means: ", standardizer.means)
@@ -50,6 +51,7 @@ print("std:   ", standardizer.std)
 y_standard = standardizer(y)
 y_for_visualization_samples_standard = standardizer(y_for_visualization_samples)
 y_standard.shape
+
 # Run GAN
 num_threads = 10
 sess = tf.Session(config=tf.ConfigProto(
@@ -63,16 +65,16 @@ if train:
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
                                   "GAN-Galaxy",
-                                  "models/gan/checkpoints")
+                                  "models/simple_gan/checkpoints")
 else:
     num_epochs = 1
     # use a dir inside the repo
-    checkpoint_dir = "models/gan/checkpoints"
+    checkpoint_dir = "models/simple_gan/checkpoints"
 batch_size = 64
 z_dim = 100
 dataset_name = "galaxy"
-result_dir = "models/gan"
-log_dir = "models/gan/log"
+result_dir = "models/simple_gan"
+log_dir = "models/simple_gan/log"
 model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
                  image_size, X_img, 
                  y_standard, y_for_visualization_samples_standard,

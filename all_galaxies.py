@@ -50,9 +50,7 @@ df = pd.read_csv("data/2018_02_23-all_objects.csv")
 # df = df[df.selected]
 
 
-df = df.drop_duplicates("HSC_id") \
-       .set_index("HSC_id") \
-       [["photo_z", "log_mass"]]
+df = df.drop_duplicates("HSC_id").set_index("HSC_id")[["photo_z", "log_mass"]]
 
 df.head()
 
