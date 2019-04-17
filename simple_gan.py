@@ -17,28 +17,34 @@ import misc
 import gan
 
 # Load galaxy image data
+print("\n##########################")
+print("Load galaxy image data")
+print("##########################")
 X_img = np.load("data/images.small.npy")
 X_img = X_img.transpose([0,2,3,1])
-X_img.shape
+print("\n++ X_img.shape: {0}\n".format(X_img.shape))
 
 image_size = X_img.shape[1]
-image_size
+print("\n++ image_size: {0}\n".format(image_size))
 
 # Load targets
+print("\n##########################")
+print("Load targets")
+print("##########################")
 HSC_ids = np.load("data/HSC_ids.npy")
-HSC_ids
+print("\n++ HSC_ids: {0}\n".format(HSC_ids))
 
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
 df = df[df.selected]
 
+df = df.drop_duplicates("HSC_id") \
+       .set_index("HSC_id") \
+       [["photo_z", "log_mass"]]
 
-df = df.drop_duplicates("HSC_id").set_index("HSC_id")[["photo_z", "log_mass"]]
-
-df.head()
+#df.head()
+print("\n++ df.head() : {0}\n".format(df.head()))
 
 y = df.loc[HSC_ids].values
-
-'''
 y_for_visualization_samples = np.array([.14, 8.51])
 
 standardizer = misc.Standardizer()
@@ -48,10 +54,12 @@ print("std:   ", standardizer.std)
 y_standard = standardizer(y)
 y_for_visualization_samples_standard = standardizer(y_for_visualization_samples)
 
-y_standard.shape
-
+print("\n++ y_standard.shape : {0}\n".format(y_standard.shape))
 
 # Run GAN
+print("\n##########################")
+print("Run GAN")
+print("##########################")
 num_threads = 10
 
 sess = tf.Session(config=tf.ConfigProto(
@@ -64,19 +72,23 @@ if train:
     # num_epochs = 450
     num_epochs = 10
     # use a dir outside of dropbox
-    checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "tmp - models",
-                                  "models/gan/checkpoints")
+    # checkpoint_dir = os.path.join(os.path.expanduser("~"),
+    #                               "tmp - models",
+    #                               "models/gan/checkpoints")
+    checkpoint_dir = os.path.join(os.path.expanduser("models/simple_gan/checkpoints"))
 else:
     num_epochs = 1
     # use a dir inside the repo
-    checkpoint_dir = "models/gan/checkpoints"
+    # checkpoint_dir = "models/gan/checkpoints"
+    checkpoint_dir = "models/simple_gan/checkpoints"
 
 batch_size = 64
 z_dim = 100
 dataset_name = "galaxy"
-result_dir = "models/gan/results"
-log_dir = "models/gan/log"
+# result_dir = "models/gan/results"
+# log_dir = "models/gan/log"
+result_dir = "models/simple_gan"
+log_dir = "models/simple_gan/log"
 
 model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
                  image_size, X_img, 
@@ -93,5 +105,46 @@ model.train()
 
 
 
+###########
+# output  #
+###########
 '''
+##########################
+Load galaxy image data
+##########################
 
+++ X_img.shape: (1866, 50, 50, 3)
+
+
+++ image_size: 50
+
+
+##########################
+Load targets
+##########################
+
+++ HSC_ids: [43158176442374224 43158176442374373 43158176442374445 ...
+ 43159155694916013 43159155694916476 43159155694917496]
+
+
+++ df.head() :                    photo_z  log_mass
+HSC_id                              
+43158584464268619   0.4810   9.17510
+43158721903220850   0.0050   7.64999
+43158447025313043   0.0857   7.94762
+43158584464268728   0.1315   8.21643
+43158447025292832   0.0701   7.86620
+
+means:  [0.21093612 8.62739865]
+std:    [0.30696933 0.63783586]
+
+++ y_standard.shape : (1866, 2)
+
+
+##########################
+Run GAN
+##########################
+...
+..
+.
+'''
