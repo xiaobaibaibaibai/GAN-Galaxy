@@ -20,24 +20,32 @@ import misc
 import gan
 
 # Load galaxy image data
+print("\n##########################")
+print("Load galaxy image data")
+print("##########################")
 X_img = np.load("data/images.small.npy")
 X_img = X_img.transpose([0,2,3,1])
-X_img.shape
+print("\n++ X_img.shape: {0}\n".format(X_img.shape))
 
 image_size = X_img.shape[1]
-image_size
+print("\n++ image_size: {0}\n".format(image_size))
 
 # Load targets
+print("\n##########################")
+print("Load targets")
+print("##########################")
 HSC_ids = np.load("data/HSC_ids.npy")
-HSC_ids
+print("\n++ HSC_ids: {0}\n".format(HSC_ids))
 
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
 df = df[df.selected]
 
+df = df.drop_duplicates("HSC_id") \
+       .set_index("HSC_id") \
+       [["photo_z", "log_mass"]]
 
-df = df.drop_duplicates("HSC_id").set_index("HSC_id")[["photo_z", "log_mass"]]
-
-df.head()
+#df.head()
+print("\n++ df.head() : {0}\n".format(df.head()))
 
 y = df.loc[HSC_ids].values
 
@@ -53,6 +61,9 @@ y_for_visualization_samples_standard = standardizer(y_for_visualization_samples)
 y_standard.shape
 
 # Run GAN
+print("\n##########################")
+print("Run GAN")
+print("##########################")
 num_threads = 10
 sess = tf.Session(config=tf.ConfigProto(
     intra_op_parallelism_threads=num_threads,
