@@ -75,7 +75,7 @@ else:
 batch_size = 64
 z_dim = 100
 dataset_name = "galaxy"
-result_dir = "models/gan/results"
+result_dir = "models/gan"
 log_dir = "models/gan/log"
 
 model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
