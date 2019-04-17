@@ -74,9 +74,7 @@ if train:
     # num_epochs = 450
     num_epochs = 3
     # use a dir outside of dropbox
-    checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "GAN-Galaxy",
-                                  "models/simple_gan/checkpoints")
+    checkpoint_dir = os.path.join(os.path.expanduser("models/simple_gan/checkpoints"))
 else:
     num_epochs = 1
     # use a dir inside the repo
