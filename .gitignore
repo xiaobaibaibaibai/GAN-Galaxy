@@ -5,13 +5,14 @@ galaxy_images_training
 .venv/
 .vscode/
 __pycache__/
+npy_files/
 
 settings.json
 
 test.py
 
 *.zip
-
+*.tar*
 
 
 test*.py

@@ -82,12 +82,12 @@ if train:
     num_epochs = 100
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "tmp - models",
+                                  "GAN-GALAXY",
                                   "models/ri_gan/checkpoints")
 else:
     num_epochs = 1
     # use a dir inside the repo
-    checkpoint_dir = "models/ri_gan/checkpoints"
+    checkpoint_dir = "~/buxin/models/ri_gan/checkpoints"
     
 batch_size = 64
 z_dim = 100

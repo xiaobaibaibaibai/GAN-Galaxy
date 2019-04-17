@@ -81,8 +81,8 @@ if train:
     num_epochs = 100
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "tmp - models",
-                                  "models/gan/checkpoints")
+                                  "GAN-GALAXY",
+                                  "models/all_gan/checkpoints")
 else:
     num_epochs = 1
     # use a dir inside the repo
@@ -92,8 +92,8 @@ batch_size = 64
 z_dim = 100
 dataset_name = "galaxy_all"
 # result_dir = "models/gan/results"
-result_dir = "models/gan"
-log_dir = "models/gan/log"
+result_dir = "models/all_gan"
+log_dir = "models/all_gan/log"
 
 model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
                  image_size, X_img, 
