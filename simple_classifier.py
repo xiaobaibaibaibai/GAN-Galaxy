@@ -4,16 +4,6 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 
-from keras.callbacks import EarlyStopping
-from keras.callbacks import ModelCheckpoint
-
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.optimizers import SGD, Adam
-from keras import backend as K
-K.set_image_data_format('channels_first')
-
 import seaborn as sns
 sns.set(font_scale=2, style="ticks")
 
@@ -23,13 +13,18 @@ HSC_ids
 X = np.load("data/images.small.npy")
 X.shape
 
+
 # Get targets
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
 df = df[df.selected]
 df.head()
 
+
+
 targets = df.drop_duplicates("HSC_id") \
-            .set_index("HSC_id") \
+            .set_index("HSC_id")
+    
+
 
 targets = (targets.log_mass > 8) & (targets.log_mass < 9) & (targets.photo_z < .15)
 print(targets.mean())
@@ -52,8 +47,8 @@ testing_set_indices = randomized_indices[:int(num_testing)]
 training_set_indices = np.array(list(set([*randomized_indices]) - set([*testing_set_indices])))
 
 testing_set_indices.size
-
 training_set_indices.size
+
 
 # Setup standard augmentation
 from keras.preprocessing.image import ImageDataGenerator
@@ -83,108 +78,69 @@ datagen = ImageDataGenerator(
 
 datagen.fit(X[training_set_indices])
 
-# Setup keras model
-n_conv_filters = 16
-conv_kernel_size = 4
+# Setup Classifier
+from classifier import Classifier
+
 input_shape = X.shape[1:]
 
-dropout_fraction = .25
-
-nb_dense = 64
-
-input_shape
-
-
-model = Sequential()
-
-model.add(Conv2D(n_conv_filters, conv_kernel_size,
-                        padding='same', input_shape=input_shape))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(dropout_fraction))
-
-
-model.add(Conv2D(n_conv_filters, conv_kernel_size*2,
-                        padding='same',))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(dropout_fraction))
-
-model.add(Conv2D(n_conv_filters, conv_kernel_size*4,
-                        padding='same', input_shape=input_shape))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(dropout_fraction))
-
-model.add(Flatten())
-model.add(Dense(2*nb_dense, activation="relu"))
-model.add(Dense(nb_dense, activation="relu"))
-model.add(Dense(1, activation="sigmoid"))
-
-learning_rate = 0.001
-decay = 1e-5
-momentum = 0.9
-
-sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum, nesterov=True)
-
-adam = Adam(lr=learning_rate)
-
-model.compile(loss='binary_crossentropy', 
-#               optimizer=sgd, 
-              optimizer=adam,
-#               metrics=["accuracy"]
-             )
-
-earlystopping = EarlyStopping(monitor='loss',
-                              patience=35,
-                              verbose=1,
-                              mode='auto' )
-
-# Run Basic Keras Model
-
-goal_batch_size = 64
-steps_per_epoch = max(2, training_set_indices.size//goal_batch_size)
-batch_size = training_set_indices.size//steps_per_epoch
-print("steps_per_epoch: ", steps_per_epoch)
-print("batch_size: ", batch_size)
-epochs = 100
-verbose=1
+classifier_model = Classifier(input_shape)
+classifier_model.configure_optimizer(lr=0.001)
+classifier_model.build_model()
+classifier_model.configure_early_stopping()
 
 Y = targets[HSC_ids].values
 
-# %%timeit -r 1 -n 1
-history = model.fit_generator(datagen.flow(X[training_set_indices], Y[training_set_indices],
-                                           batch_size=batch_size,
-                                          ),
-                              steps_per_epoch=steps_per_epoch,
-                              epochs=epochs,
-                              validation_data=(X[testing_set_indices], Y[testing_set_indices]),
-                              verbose=verbose,
-                              callbacks=[earlystopping],
-                              )
+data_iterator = datagen.flow(X[training_set_indices],
+                             Y[training_set_indices],
+                             batch_size=classifier_model.batch_size,
+                            )
 
-print("best performance: ", min(history.history["val_loss"]))
+
+# Run Basic Classifier
+history = classifier_model.fit_model(X, Y, 
+                                     training_set_indices,
+                                     testing_set_indices,
+                                     data_iterator,
+                                    )
+
+# Check Classifier Performance
+from sklearn.metrics import log_loss
+p = Y[training_set_indices].mean()
+prior_loss = log_loss(Y[testing_set_indices], 
+                      [p]*testing_set_indices.size)
+
+print("performance (prior): {:.3f}".format(prior_loss))
+print("performance (best):  {:.3f}".format(min(history.history["val_loss"])))
+
+from matplotlib.ticker import MaxNLocator
 
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.plot(history.history["val_loss"], label="Validation")
     plt.plot(history.history["loss"], label="Training")
+    
+    plt.axhline(prior_loss, label="Prior", 
+                linestyle="dashed", color="black")
 
-
-    plt.legend()
+    plt.legend(loc="best")
     
     plt.xlabel("Epoch")
-#     plt.ylabel("Loss\n(avg. binary cross-entropy)")
-    plt.ylabel("Loss")
+    plt.ylabel("Loss\n(mean binary cross-entropy)")
+    
+    plt.ylim(.4, .7)
+    
+    # Force only integer labels, not fractional labels
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
-    plt.ylim(.45, .65)
-
-    plt.savefig("Classifier_Baseline0.png")
-
+    # save figure
+    plt.savefig("f0.png")
 
 
+class_probs = classifier_model.model \
+                              .predict_proba(X[testing_set_indices]) \
+                              .flatten()
 
-class_probs = model.predict_proba(X[testing_set_indices]).flatten()
+print("predict probability: ", class_probs)
 class_probs
 
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
@@ -203,9 +159,7 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
         bbox_to_anchor=(1, 1),
     )
 
-    plt.savefig("Classifier_Baseline1.png")
-
-
+    plt.savefig("f1.png")
 
 
 
@@ -229,7 +183,9 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
-    plt.savefig("ROC_Curve.png")
+    plt.savefig("f2.png")
+
+
 
 
 from sklearn import metrics
@@ -251,7 +207,12 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
-    plt.savefig("PR_Curve.png")
+    plt.savefig("f3.png")
+
+
+
+
+
 
 
 

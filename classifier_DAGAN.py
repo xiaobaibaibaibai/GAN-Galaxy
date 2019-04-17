@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
+=======
+from matplotlib import pyplot as plt
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 import matplotlib as mpl
 
 import numpy as np
@@ -19,7 +23,10 @@ sns.set(font_scale=2, style="ticks")
 import misc
 import gan
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 HSC_ids = np.load("data/HSC_ids.npy")
 HSC_ids
 
@@ -33,6 +40,7 @@ image_size = X.shape[-1]
 image_shape = X.shape[1:]
 image_size
 
+<<<<<<< HEAD
 
 
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
@@ -52,15 +60,48 @@ y_conditionals_for_visualization = np.array([.14, 8.51])
 # values copied from output of `simple gan.ipynb`
 # standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865, 21.54070648, 21.28554743]),
 #                                  std = np.array([0.30696933, 0.63783586, 1.13836541, 1.14504214]))
+=======
+image_shape
+
+# Get targets
+df = pd.read_csv("data/2018_02_23-all_objects.csv")
+df = df[df.selected]
+
+df = df.drop_duplicates("HSC_id") \
+       .set_index("HSC_id") \
+       .loc[HSC_ids] \
+       [["photo_z", "log_mass"]]
+    
+
+targets = (df.log_mass > 8) & (df.log_mass < 9) & (df.photo_z < .15)
+print(targets.mean())
+print(targets.sum())
+
+y_conditionals = df.values
+
+y_conditionals_for_visualization = np.array([[.14, 8.51]])
+
+
+# values copied from output of `simple gan.ipynb`
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
                                  std = np.array([0.30696933, 0.63783586]))
 # standardizer.train(y)
 print("means: ", standardizer.means)
 print("std:   ", standardizer.std)
 
+<<<<<<< HEAD
 y_conditionals = standardizer(y_conditionals)
 y_conditionals_for_visualization = standardizer(y_conditionals_for_visualization)
 
+=======
+
+y_conditionals = standardizer(y_conditionals)
+y_conditionals_for_visualization = standardizer(y_conditionals_for_visualization)
+
+
+# Split training and validation sets
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 batch_size = 64
 
 np.random.seed(seed=0)
@@ -75,6 +116,14 @@ num_training = (int(training_fraction*X.shape[0]) // batch_size) * batch_size
 training_set_indices = randomized_indices[:int(num_training)]
 testing_set_indices = np.array(list(set([*randomized_indices]) - set([*training_set_indices])))
 
+<<<<<<< HEAD
+=======
+testing_set_indices.size
+training_set_indices.size
+
+
+# Setup GAN augmentation
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 from keras.preprocessing.image import Iterator
 from keras.preprocessing.image import array_to_img
 
@@ -173,18 +222,32 @@ if train:
     num_epochs = 450
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
+<<<<<<< HEAD
                                   "GAN-GALAXY",
                                   "models/classify_DAGAN/checkpoints")
 else:
     num_epochs = 1
     # use a dir inside the repo
     checkpoint_dir = "models/ri_gan/checkpoints"
+=======
+                                  "tmp - models",
+                                  "models/gan/checkpoints")
+else:
+    num_epochs = 1
+    # use a dir inside the repo
+    checkpoint_dir = "models/simple_gan/checkpoints"
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 
 # batch_size = 64 # set above
 z_dim = 100
 dataset_name = "galaxy"
+<<<<<<< HEAD
 result_dir = "models/classify_DAGAN"
 log_dir = "models/classify_DAGAN/log"
+=======
+result_dir = "models/classifier_DAGAN"
+log_dir = "models/classifier_DAGAN/log"
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 
 gan_model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
                      image_size, X_img, 
@@ -213,9 +276,21 @@ y_conditionals_tmp = y_conditionals[batch_idx]
 
 samples = gan_model.generate_samples(y_conditionals_tmp)
 
+<<<<<<< HEAD
 plt.imshow(misc.transform_0_1(samples[0]))
 plt.savefig("result.png")
 
+=======
+print("samples.shape: ", samples.shape)
+
+plt.imshow(misc.transform_0_1(samples[0]))
+
+# save figure
+plt.savefig("result.png")
+
+
+# Setup Classifier
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 from classifier import Classifier
 
 input_shape = X.shape[1:]
@@ -225,16 +300,26 @@ classifier_model.configure_optimizer(lr=0.001)
 classifier_model.build_model()
 classifier_model.configure_early_stopping()
 
+<<<<<<< HEAD
 
 Y = targets[HSC_ids].values
 
 
+=======
+Y = targets[HSC_ids].values
+
+# Run Basic Keras Model
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 history = classifier_model.fit_model(X, Y, 
                                      training_set_indices,
                                      testing_set_indices,
                                      dagan_iterator,
                                     )
 
+<<<<<<< HEAD
+=======
+# Check Classifier Performance
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 from sklearn.metrics import log_loss
 p = Y[training_set_indices].mean()
 prior_loss = log_loss(Y[testing_set_indices], 
@@ -243,7 +328,10 @@ prior_loss = log_loss(Y[testing_set_indices],
 print("performance (prior): {:.3f}".format(prior_loss))
 print("performance (best):  {:.3f}".format(min(history.history["val_loss"])))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 from matplotlib.ticker import MaxNLocator
 
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
@@ -264,6 +352,16 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
     # Force only integer labels, not fractional labels
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
+<<<<<<< HEAD
+=======
+    # save figure
+    # plt.savefig("f0.png")
+
+
+
+
+
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 
 
 class_probs = classifier_model.model \
@@ -271,7 +369,10 @@ class_probs = classifier_model.model \
                               .flatten()
 class_probs
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
     sns.distplot(class_probs[Y[testing_set_indices]==True], color="g", label="true dwarfs")
     sns.distplot(class_probs[Y[testing_set_indices]==False], color="b", label="true non-dwarfs")
@@ -288,6 +389,13 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
         bbox_to_anchor=(1, 1),
     )
 
+<<<<<<< HEAD
+=======
+    # save figure
+    # plt.savefig("f1.png")
+
+
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 
 
 from sklearn import metrics
@@ -310,6 +418,14 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
+<<<<<<< HEAD
+=======
+    # save figure
+    # plt.savefig("f2.png")
+
+
+
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
 
 from sklearn import metrics
 from sklearn.metrics import average_precision_score
@@ -328,4 +444,22 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.title("PR Curve")
 
+<<<<<<< HEAD
     plt.legend(loc="best")
+=======
+    plt.legend(loc="best")
+
+    # save figure
+    # plt.savefig("f3.png")
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 2225d08809478f7abfa89af1b334aa4ca48980c7
