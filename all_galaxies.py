@@ -1,4 +1,7 @@
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import matplotlib as mpl
 import seaborn as sns
 
