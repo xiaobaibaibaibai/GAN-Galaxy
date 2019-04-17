@@ -21,16 +21,15 @@ import misc
 import gan
 
 
-# Load galaxy image data
+
 img_dir = "data/galaxy_images_training/npy_files/"
 filename_formatter = os.path.join(img_dir, "{}-cutout.npy")
 
 npy_files = glob.glob(filename_formatter.format("*"))
 
-HSC_ids = np.array([int(os.path.basename(f).split("-")[0])
-                    for f in npy_files])
+HSC_ids = np.array([int(os.path.basename(f).split("-")[0]) for f in npy_files])
 
-HSC_ids
+print("HSC_ids")
 
 
 X_img = np.empty([len(HSC_ids), 3, 50, 50])
@@ -38,13 +37,11 @@ for i, HSC_id in enumerate(HSC_ids):
     X_img[i] = np.load(filename_formatter.format(HSC_id))
 
 X_img = X_img.transpose([0,2,3,1])
-X_img.shape
+print("X_img.shape")
 
 image_size = X_img.shape[1]
-image_size
+print("image_size")
 
-
-# Load targets
 
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
 # df = df[df.selected]
@@ -52,10 +49,12 @@ df = pd.read_csv("data/2018_02_23-all_objects.csv")
 
 df = df.drop_duplicates("HSC_id").set_index("HSC_id")[["photo_z", "log_mass"]]
 
-df.head()
+print("df.head()")
+
 
 y = df.loc[HSC_ids].values
 y_for_visualization_samples = np.array([.14, 8.51])
+
 
 # values copied from output of `simple gan.ipynb`
 standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
@@ -66,9 +65,10 @@ print("std:   ", standardizer.std)
 y_standard = standardizer(y)
 y_for_visualization_samples_standard = standardizer(y_for_visualization_samples)
 
-y_standard.shape
+print("y_standard.shape")
 
-# Run GAN
+
+
 num_threads = 4
 
 sess = tf.Session(config=tf.ConfigProto(
@@ -81,7 +81,7 @@ if train:
     num_epochs = 100
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "GAN-GALAXY",
+                                  "GAN-Galaxy",
                                   "models/all_gan/checkpoints")
 else:
     num_epochs = 1
@@ -91,7 +91,6 @@ else:
 batch_size = 64
 z_dim = 100
 dataset_name = "galaxy_all"
-# result_dir = "models/gan/results"
 result_dir = "models/all_gan"
 log_dir = "models/all_gan/log"
 
@@ -107,6 +106,3 @@ model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
 model.build_model()
 
 model.train()
-
-
-
