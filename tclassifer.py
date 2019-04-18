@@ -1,14 +1,3 @@
-import sys
-
-
-if len(sys.argv) < 2 || len(sys.argv) > 3:
-    print("only accept 2 arguements")
-    sys.exit()
-else:
-    print(sys.argv)
-
-
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -66,7 +55,7 @@ standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
 # standardizer.train(y)
 print("means: ", standardizer.means)
 print("std:   ", standardizer.std)
-'''
+
 y_conditionals = standardizer(y_conditionals)
 y_conditionals_for_visualization = standardizer(y_conditionals_for_visualization)
 
@@ -342,4 +331,3 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.legend(loc="best")
 
-'''
