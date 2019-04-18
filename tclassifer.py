@@ -20,7 +20,16 @@ import pandas as pd
 import os
 
 import tensorflow as tf
+
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation, Flatten
+from keras.layers.convolutional import Conv2D, MaxPooling2D
+from keras.optimizers import SGD, Adam
 from keras import backend as K
+K.set_image_data_format('channels_first')
 
 import seaborn as sns
 sns.set(font_scale=2, style="ticks")
@@ -29,39 +38,48 @@ sns.set(font_scale=2, style="ticks")
 import misc
 import gan
 
-
-
 HSC_ids = np.load("data/HSC_ids.npy")
-HSC_ids
+
 
 X = np.load("data/images.small.npy")
-X.shape
 
 X_img = X.copy().transpose([0,2,3,1])
-X_img.shape
+
 
 image_size = X.shape[-1]
 image_shape = X.shape[1:]
-image_size
-
 
 
 df = pd.read_csv("data/2018_02_23-all_objects.csv")
 df = df[df.selected]
 
-df = df.drop_duplicates("HSC_id").set_index("HSC_id").loc[HSC_ids][["photo_z", "log_mass"]]
+df = df.drop_duplicates("HSC_id") \
+       .set_index("HSC_id") \
+       .loc[HSC_ids] \
+       [["photo_z", "log_mass"]]
+    
 
-
-targets = (df.log_mass > 7) & (df.log_mass < 10) & (df.photo_z < .3)
+targets = (df.log_mass > 8) & (df.log_mass < 10) & (df.photo_z < .15)
+print(targets.mean())
+print(targets.sum())
 
 y_conditionals = df.values
 
-# y_conditionals_for_visualization = np.array([.14, 8.51])
-y_conditionals_for_visualization = np.array([arugments[0], arugments[1]], dtype=np.float64)
 
+# y_conditionals_for_visualization = np.array([[.14, 8.51]])
+y_conditionals_for_visualization = np.array([arugments[0], arugments[1]],dtype=np.float64)
+
+
+meanNum = np.array([arugments[0], arugments[1]],dtype=np.float64)
+
+# stdNum = np.array([arugments[0], arugments[1]],dtype=np.float64)
+# stdNum[0] + 0.9
+# stdNum[1] - 0.2
 
 # values copied from output of `simple gan.ipynb`
-standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
+# standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
+#                                  std = np.array([0.30696933, 0.63783586]))
+standardizer = misc.Standardizer(means = meanNum,
                                  std = np.array([0.30696933, 0.63783586]))
 # standardizer.train(y)
 print("means: ", standardizer.means)
@@ -70,7 +88,9 @@ print("std:   ", standardizer.std)
 y_conditionals = standardizer(y_conditionals)
 y_conditionals_for_visualization = standardizer(y_conditionals_for_visualization)
 
+
 batch_size = 64
+
 
 np.random.seed(seed=0)
 
@@ -85,12 +105,9 @@ training_set_indices = randomized_indices[:int(num_training)]
 testing_set_indices = np.array(list(set([*randomized_indices]) - set([*training_set_indices])))
 
 
-# print(testing_set_indices.size)  # 394
-# print(training_set_indices.size) # 1472
-
-
 from keras.preprocessing.image import Iterator
 from keras.preprocessing.image import array_to_img
+
 
 class DAGANIterator(Iterator):
     """Iterator yielding data from a DAGAN
@@ -180,6 +197,7 @@ class DAGANIterator(Iterator):
         # so it can be done in parallel
         return self._get_batches_of_transformed_samples(index_array)
 
+
 sess = tf.Session()
 
 train = False
@@ -187,17 +205,20 @@ if train:
     num_epochs = 450
     # use a dir outside of dropbox
     checkpoint_dir = os.path.join(os.path.expanduser("~"),
-                                  "GAN-GALAXY",
-                                  "models/classify_DAGAN/checkpoints")
+                                  "tmp - models",
+                                  "models/gan/checkpoints")
 else:
     num_epochs = 1
     # use a dir inside the repo
+    # checkpoint_dir = "models/gan/checkpoints"
     checkpoint_dir = "models/all_gan/checkpoints"
 
 # batch_size = 64 # set above
 z_dim = 100
+# dataset_name = "galaxy"
 dataset_name = "galaxy_all"
-result_dir = "models/classify_DAGAN"
+# result_dir = "models/gan/results"
+result_dir = "models/classify_DAGAN/"
 log_dir = "models/classify_DAGAN/log"
 
 gan_model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
@@ -211,10 +232,13 @@ gan_model = gan.CGAN(sess, num_epochs, batch_size, z_dim, dataset_name,
 gan_model.build_model()
 gan_model.train()
 
+
+
 y_conditional_training = y_conditionals[training_set_indices]
 y_target_training = targets.values[training_set_indices]
 
 y_target_training.size
+
 
 dagan_iterator = DAGANIterator(gan_model, y_target_training, y_conditional_training,
                                image_shape=image_shape, 
@@ -228,63 +252,101 @@ y_conditionals_tmp = y_conditionals[batch_idx]
 samples = gan_model.generate_samples(y_conditionals_tmp)
 
 plt.imshow(misc.transform_0_1(samples[0]))
-plt.savefig("result.png")
+plt.savefig('result.png')
 
-from classifier import Classifier
-
+n_conv_filters = 16
+conv_kernel_size = 4
 input_shape = X.shape[1:]
 
-classifier_model = Classifier(input_shape)
-classifier_model.configure_optimizer(lr=0.001)
-classifier_model.build_model()
-classifier_model.configure_early_stopping()
+dropout_fraction = .25
 
+nb_dense = 64
+
+
+model = Sequential()
+
+model.add(Conv2D(n_conv_filters, conv_kernel_size,
+                        padding='same', input_shape=input_shape))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(dropout_fraction))
+
+
+model.add(Conv2D(n_conv_filters, conv_kernel_size*2,
+                        padding='same',))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(dropout_fraction))
+
+model.add(Conv2D(n_conv_filters, conv_kernel_size*4,
+                        padding='same', input_shape=input_shape))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(dropout_fraction))
+
+model.add(Flatten())
+model.add(Dense(2*nb_dense, activation="relu"))
+model.add(Dense(nb_dense, activation="relu"))
+model.add(Dense(1, activation="sigmoid"))
+
+
+learning_rate = 0.001
+
+adam = Adam(lr=learning_rate)
+
+
+model.compile(loss='binary_crossentropy', 
+              optimizer=adam,
+             )
+
+earlystopping = EarlyStopping(monitor='loss',
+                              patience=35,
+                              verbose=1,
+                              mode='auto' )
+
+
+goal_batch_size = 64
+steps_per_epoch = max(2, training_set_indices.size//goal_batch_size)
+batch_size = training_set_indices.size//steps_per_epoch
+print("steps_per_epoch: ", steps_per_epoch)
+print("batch_size: ", batch_size)
+epochs = 100
+verbose = 1
 
 Y = targets[HSC_ids].values
 
 
+history = model.fit_generator(dagan_iterator,
+                              steps_per_epoch=steps_per_epoch,
+                              epochs=epochs,
+                              validation_data=(X[testing_set_indices], Y[testing_set_indices]),
+                              verbose=verbose,
+                              callbacks=[earlystopping],
+                              )
 
 
-history = classifier_model.fit_model(X, Y, 
-                                     training_set_indices,
-                                     testing_set_indices,
-                                     dagan_iterator,
-                                    )
+print("best performance: ", min(history.history["val_loss"]))
 
-from sklearn.metrics import log_loss
-p = Y[training_set_indices].mean()
-prior_loss = log_loss(Y[testing_set_indices], 
-                      [p]*testing_set_indices.size)
-
-print("performance (prior): {:.3f}".format(prior_loss))
-print("performance (best):  {:.3f}".format(min(history.history["val_loss"])))
-
-from matplotlib.ticker import MaxNLocator
 
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
 
     plt.plot(history.history["val_loss"], label="Validation")
     plt.plot(history.history["loss"], label="Training")
-    
-    plt.axhline(prior_loss, label="Prior", 
-                linestyle="dashed", color="black")
 
-    plt.legend(loc="best")
+
+    plt.legend()
     
     plt.xlabel("Epoch")
-    plt.ylabel("Loss\n(mean binary cross-entropy)")
+#     plt.ylabel("Loss\n(avg. binary cross-entropy)")
+    plt.ylabel("Loss")
+
     
-#     plt.ylim(.45, .65)
-    
-    # Force only integer labels, not fractional labels
-    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.ylim(.45, .65)
 
 
-
-class_probs = classifier_model.model \
-                              .predict_proba(X[testing_set_indices]) \
-                              .flatten()
+class_probs = model.predict_proba(X[testing_set_indices]).flatten()
 class_probs
+
 
 with mpl.rc_context(rc={"figure.figsize": (10,6)}):
     sns.distplot(class_probs[Y[testing_set_indices]==True], color="g", label="true dwarfs")
@@ -301,6 +363,8 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
         loc="upper left",
         bbox_to_anchor=(1, 1),
     )
+
+
 
 from sklearn import metrics
 from sklearn.metrics import roc_auc_score
@@ -341,5 +405,3 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
     plt.title("PR Curve")
 
     plt.legend(loc="best")
-
-
