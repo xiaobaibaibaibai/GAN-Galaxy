@@ -1,3 +1,13 @@
+import sys
+
+arugments = sys.argv[1:]
+if len(arugments) is not 2:
+    print("only accept 2 arguements")
+    sys.exit()
+else:
+    print("the redshift is {0}, the mass is {1}".format(arugments[0], arugments[1]))
+
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -42,12 +52,13 @@ df = df[df.selected]
 df = df.drop_duplicates("HSC_id").set_index("HSC_id").loc[HSC_ids][["photo_z", "log_mass"]]
 
 
-targets = (df.log_mass > 8) & (df.log_mass < 9) & (df.photo_z < .15)
+targets = (df.log_mass > 7) & (df.log_mass < 10) & (df.photo_z < .3)
 
 y_conditionals = df.values
 
-# y_conditionals_for_visualization = np.array([.14, 8.51, 21.15, 23.71])
-y_conditionals_for_visualization = np.array([.14, 8.51])
+# y_conditionals_for_visualization = np.array([.14, 8.51])
+y_conditionals_for_visualization = np.array([arugments[0], arugments[1]], dtype=np.float64)
+
 
 # values copied from output of `simple gan.ipynb`
 standardizer = misc.Standardizer(means = np.array([0.21093612, 8.62739865]),
@@ -330,4 +341,5 @@ with mpl.rc_context(rc={"figure.figsize": (10,6)}):
     plt.title("PR Curve")
 
     plt.legend(loc="best")
+
 
