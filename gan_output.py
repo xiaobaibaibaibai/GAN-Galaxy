@@ -14,6 +14,21 @@ mpl.rcParams['savefig.dpi'] = 80
 mpl.rcParams['figure.dpi'] = 80
 mpl.rcParams['figure.figsize'] = np.array((10, 6))*.6
 
+level = "component"
+# level = "layer"
+
+
+def parameters(variable):
+    shape = variable.shape
+    # print(shape)
+    # print(len(shape))
+    variable_parameters = 1
+    for dim in shape:
+        # print(dim)
+        variable_parameters *= dim.value
+    # print(variable_parameters)
+    return variable_parameters
+
 
 def lrelu(x, leak=0.2, name="lrelu"):
     return tf.maximum(x, leak*x)
@@ -22,10 +37,11 @@ def lrelu(x, leak=0.2, name="lrelu"):
 def conv2d(input_, output_dim, k_h=5, k_w=5, d_h=2, d_w=2, stddev=0.02,
            name="conv2d", padding="SAME"):
     
-    print("\n#####\n# conv2d #\n######")
-    # print(": {0}".format())
-    print("input_.shape: {0}".format(input_.shape))
-    print("output_dim: {0}".format(output_dim))
+    if level == "layer":
+        print("\n#####\n# conv2d #\n######")
+        # print(": {0}".format())
+        print("input_.shape: {0}".format(input_.shape))
+        print("output_dim: {0}".format(output_dim))
 
     with tf.variable_scope(name):
         w = tf.get_variable('w', [k_h, k_w, input_.get_shape()[-1], output_dim],
@@ -54,10 +70,12 @@ def bn(x, is_training, scope):
 
 def linear(input_, output_size, scope=None, stddev=0.02, bias_start=0.0, with_w=False):
     shape = input_.get_shape().as_list()
-    print("\n#####\n# linear #\n######")
-    # print(": {0}".format())
-    print("input_.shape: {0}".format(input_.shape))
-    print("output_size: {0}".format(output_size))
+
+    if level == "layer":
+        print("\n#####\n# linear #\n######")
+        # print(": {0}".format())
+        print("input_.shape: {0}".format(input_.shape))
+        print("output_size: {0}".format(output_size))
 
     with tf.variable_scope(scope or "Linear"):
         matrix = tf.get_variable("Matrix", [shape[1], output_size], tf.float32,
@@ -72,11 +90,11 @@ def linear(input_, output_size, scope=None, stddev=0.02, bias_start=0.0, with_w=
 
 def deconv2d(input_, output_shape, k_h=5, k_w=5, d_h=2, d_w=2,
              name="deconv2d", stddev=0.02, with_w=False):
-
-    print("\n#####\n# deconv2d #\n######")
-    # print(": {0}".format())
-    print("input_.shape: {0}".format(input_.shape))
-    print("output_shape: {0}".format(output_shape))
+    if level == "layer":
+        print("\n#####\n# deconv2d #\n######")
+        # print(": {0}".format())
+        print("input_.shape: {0}".format(input_.shape))
+        print("output_shape: {0}".format(output_shape))
 
     with tf.variable_scope(name):
         # filter : [height, width, output_channels, in_channels]
@@ -176,6 +194,7 @@ class CGAN(object):
         # so now I'm trying a resize approach
         # (see: https://distill.pub/2016/deconv-checkerboard/)
 
+        
         print("\n##############\n# generator #\n##############")
         # print(": {0}".format())
         print("z.shape: {0}".format(z.shape))
@@ -184,15 +203,20 @@ class CGAN(object):
 
         with tf.variable_scope("generator", reuse=reuse):
             inputs = tf.concat(axis=1, values=[z, y])
-            print("input.shape: {0}".format(inputs.shape))
+            if level == "component":
+                print("input.shape: {0}".format(inputs.shape))
+                print("input.param: {0}".format(parameters(inputs)))
             net = tf.nn.relu(bn(linear(inputs, 1024, scope='g_fc1'),
                                 is_training=is_training, scope='g_bn1'))
-            print("net.shape first layer: {0}".format(net.shape))
+            if level == "component":
+                print("net.shape 1st FC layer: {0}".format(net.shape))
             net = tf.nn.relu(bn(linear(net, 128 * 16 * 16, scope='g_fc2'),
                                 is_training=is_training, scope='g_bn2'))
-            print("net.shape second layer: {0}".format(net.shape))
+            if level == "component":
+                print("net.shape 2nd FC layer: {0}".format(net.shape))
             net = tf.reshape(net, [self.batch_size, 16, 16, 128])
-            print("net.shape afer reshape: {0}".format(net.shape))
+            if level == "component":
+                print("net.shape afer reshape: {0}".format(net.shape))
 
             post_conv_size = 32
             kernel_size = 4
@@ -214,7 +238,8 @@ class CGAN(object):
                    scope="g_bn3",
                    )
             )
-
+            if level == "component":
+                print("net.shape 1st Conv layer: {0}".format(net.shape))
             
             post_conv_size = self.output_height
             kernel_size = 4
@@ -231,6 +256,8 @@ class CGAN(object):
                     name="g_rc4",
                     padding=padding,
                 )
+            if level == "component":
+                print("out.shape 2nd Conv layer: {0}".format(out.shape))
 
             return out
         
@@ -242,7 +269,7 @@ class CGAN(object):
         # Note: we've now combined the real and fake images into one
         # big batch. See https://github.com/openai/improved-gan/issues/11
 
-        print("\n#####\n# discriminator #\n######")
+        print("\n##################\n# discriminator #\n##################")
         # print(": {0}".format())
         print("x.shape: {0}".format(x.shape))
 
@@ -250,17 +277,28 @@ class CGAN(object):
             joint_batch_size = self.batch_size*2
 
             net = lrelu(conv2d(x, 64, 4, 4, 2, 2, name='d_conv1'))
+            if level == "component":
+                print("net.shape 1st Conv layer: {0}".format(net.shape))
             last_num_kernels = 128
             net_post_conv = lrelu(bn(conv2d(net, last_num_kernels, 4, 4, 2, 2,
                                             name='d_conv2'),
                                      is_training=is_training, scope='d_bn2'))
+            if level == "component":
+                print("net_post_conv.shape 2nd Conv layer: {0}".format(net_post_conv.shape))
 
             net_flattened = tf.reshape(net_post_conv, [joint_batch_size, -1])
+            if level == "component":
+                print("net_flattened.shape afer reshape: {0}".format(net_flattened.shape))
 
             # This part computes the predicted y values
             net_y = lrelu(bn(linear(net_flattened, 1024, scope='d_fc3'),
                           is_training=is_training, scope='d_bn3'))
+            if level == "component":
+                print("net_y.shape 1st FC layer: {0}".format(net_y.shape))
+
             out_y = linear(net_y, self.y_dim, scope='d_fc4')
+            if level == "component":
+                print("out_y.shape 2nd FC layer: {0}".format(out_y.shape))
 
             # This part computes the minibatch discrimination score
             # See arxiv.org/abs/1606.03498 for details
@@ -272,11 +310,17 @@ class CGAN(object):
             dim_per_kernel = 5
             x = linear(net_flattened, last_num_kernels * dim_per_kernel,
                        scope="d_mbd")
+            if level == "component":
+                print("x.shape 3rd FC layer: {0}".format(x.shape))
+
+
             activation = tf.reshape(x,
                                     [joint_batch_size,
                                      last_num_kernels,
                                      dim_per_kernel],
                                     )
+            if level == "component":
+                print("activation.shape after reshape x: {0}".format(activation.shape))
 
             big = np.zeros((joint_batch_size, joint_batch_size),
                            dtype='float32')
@@ -301,8 +345,12 @@ class CGAN(object):
             minibatch_features = tf.concat([f1, f2], 1)
 
             net_with_minibatch = tf.concat([net_flattened, minibatch_features], 1)
+            if level == "component":
+                print("net_with_minibatch.shape: {0}".format(net_with_minibatch.shape))
 
             out_logit = linear(net_with_minibatch, 1, scope='d_fc_mb')
+            if level == "component":
+                print("out_logit.shape 4th FC layer: {0}".format(out_logit.shape))
 
             # split up outputs by generator and real data
             out_y_on_data = tf.slice(out_y, [0, 0], [self.batch_size, self.y_dim])
@@ -317,6 +365,13 @@ class CGAN(object):
                        out_logit_on_data, out_logit_on_generator,
                        net_y
                        ]
+
+            if level == "component":
+                print("out_y_on_data.shape: {0}".format(out_y_on_data.shape))
+                print("out_y_on_generator.shape: {0}".format(out_y_on_generator.shape))
+                print("out_logit_on_data.shape: {0}".format(out_logit_on_data.shape))
+                print("out_logit_on_generator.shape: {0}".format(out_logit_on_generator.shape))
+                print("net_y.shape: {0}".format(net_y.shape))
 
             return outputs
 
