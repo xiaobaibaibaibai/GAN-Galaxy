@@ -1,0 +1,88 @@
+----------begin g parameters-------
+==== variable name is : generator/g_fc1/Matrix:0 =====
+  variable.get_shape: (102, 1024)
+  length of variable.get_shape: 2
+    dim: 102
+    dim: 1024
+  variable_parameters: 104448
+==== variable name is : generator/g_fc1/bias:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+==== variable name is : generator/g_bn1/beta:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+==== variable name is : generator/g_bn1/gamma:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+
+
+==== variable name is : generator/g_fc2/Matrix:0 =====
+  variable.get_shape: (1024, 32768)
+  length of variable.get_shape: 2
+    dim: 1024
+    dim: 32768
+  variable_parameters: 33554432
+==== variable name is : generator/g_fc2/bias:0 =====
+  variable.get_shape: (32768,)
+  length of variable.get_shape: 1
+    dim: 32768
+  variable_parameters: 32768
+==== variable name is : generator/g_bn2/beta:0 =====
+  variable.get_shape: (32768,)
+  length of variable.get_shape: 1
+    dim: 32768
+  variable_parameters: 32768
+==== variable name is : generator/g_bn2/gamma:0 =====
+  variable.get_shape: (32768,)
+  length of variable.get_shape: 1
+    dim: 32768
+  variable_parameters: 32768
+
+
+
+==== variable name is : generator/g_rc3/w:0 =====
+  variable.get_shape: (4, 4, 128, 64)
+  length of variable.get_shape: 4
+    dim: 4
+    dim: 4
+    dim: 128
+    dim: 64
+  variable_parameters: 131072
+==== variable name is : generator/g_rc3/biases:0 =====
+  variable.get_shape: (64,)
+  length of variable.get_shape: 1
+    dim: 64
+  variable_parameters: 64
+==== variable name is : generator/g_bn3/beta:0 =====
+  variable.get_shape: (64,)
+  length of variable.get_shape: 1
+    dim: 64
+  variable_parameters: 64
+==== variable name is : generator/g_bn3/gamma:0 =====
+  variable.get_shape: (64,)
+  length of variable.get_shape: 1
+    dim: 64
+  variable_parameters: 64
+
+
+
+==== variable name is : generator/g_rc4/w:0 =====
+  variable.get_shape: (4, 4, 64, 3)
+  length of variable.get_shape: 4
+    dim: 4
+    dim: 4
+    dim: 64
+    dim: 3
+  variable_parameters: 3072
+==== variable name is : generator/g_rc4/biases:0 =====
+  variable.get_shape: (3,)
+  length of variable.get_shape: 1
+    dim: 3
+  variable_parameters: 3
+---total_g_parameters : 33894595

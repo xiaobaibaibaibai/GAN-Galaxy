@@ -1,0 +1,93 @@
+----------begin d parameters------
+==== variable name is : discriminator/d_conv1/w:0 =====
+  variable.get_shape: (4, 4, 3, 64)
+  length of variable.get_shape: 4
+    dim: 4
+    dim: 4
+    dim: 3
+    dim: 64
+  variable_parameters: 3072
+==== variable name is : discriminator/d_conv1/biases:0 =====
+  variable.get_shape: (64,)
+  length of variable.get_shape: 1
+    dim: 64
+  variable_parameters: 64
+==== variable name is : discriminator/d_conv2/w:0 =====
+  variable.get_shape: (4, 4, 64, 128)
+  length of variable.get_shape: 4
+    dim: 4
+    dim: 4
+    dim: 64
+    dim: 128
+  variable_parameters: 131072
+==== variable name is : discriminator/d_conv2/biases:0 =====
+  variable.get_shape: (128,)
+  length of variable.get_shape: 1
+    dim: 128
+  variable_parameters: 128
+==== variable name is : discriminator/d_bn2/beta:0 =====
+  variable.get_shape: (128,)
+  length of variable.get_shape: 1
+    dim: 128
+  variable_parameters: 128
+==== variable name is : discriminator/d_bn2/gamma:0 =====
+  variable.get_shape: (128,)
+  length of variable.get_shape: 1
+    dim: 128
+  variable_parameters: 128
+==== variable name is : discriminator/d_fc3/Matrix:0 =====
+  variable.get_shape: (21632, 1024)
+  length of variable.get_shape: 2
+    dim: 21632
+    dim: 1024
+  variable_parameters: 22151168
+==== variable name is : discriminator/d_fc3/bias:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+==== variable name is : discriminator/d_bn3/beta:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+==== variable name is : discriminator/d_bn3/gamma:0 =====
+  variable.get_shape: (1024,)
+  length of variable.get_shape: 1
+    dim: 1024
+  variable_parameters: 1024
+==== variable name is : discriminator/d_fc4/Matrix:0 =====
+  variable.get_shape: (1024, 2)
+  length of variable.get_shape: 2
+    dim: 1024
+    dim: 2
+  variable_parameters: 2048
+==== variable name is : discriminator/d_fc4/bias:0 =====
+  variable.get_shape: (2,)
+  length of variable.get_shape: 1
+    dim: 2
+  variable_parameters: 2
+==== variable name is : discriminator/d_mbd/Matrix:0 =====
+  variable.get_shape: (21632, 640)
+  length of variable.get_shape: 2
+    dim: 21632
+    dim: 640
+  variable_parameters: 13844480
+==== variable name is : discriminator/d_mbd/bias:0 =====
+  variable.get_shape: (640,)
+  length of variable.get_shape: 1
+    dim: 640
+  variable_parameters: 640
+==== variable name is : discriminator/d_fc_mb/Matrix:0 =====
+  variable.get_shape: (21888, 1)
+  length of variable.get_shape: 2
+    dim: 21888
+    dim: 1
+  variable_parameters: 21888
+==== variable name is : discriminator/d_fc_mb/bias:0 =====
+  variable.get_shape: (1,)
+  length of variable.get_shape: 1
+    dim: 1
+  variable_parameters: 1
+---total_d_parameters : 36157891
+
